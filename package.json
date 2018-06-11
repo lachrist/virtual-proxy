@@ -1,14 +1,14 @@
 {
-  "name": "virtual-proxy",
-  "description": "ECMAScript2016 proxies whith detached targets",
+  "name": "tolerant-proxy",
+  "description": "Create more tolerant ECMAScript6 proxies",
   "version": "0.0.0",
   "author": {
     "name": "Laurent Christophe",
     "email": "lachrist@vub.ac.be"
   },
   "main": "main.js",
-  "repository": "lachrist/virtual-proxy",
-  "homepage": "http://github.com/lachrist/virtual-proxy",
+  "repository": "lachrist/tolerant-proxy",
+  "homepage": "http://github.com/lachrist/tolerant-proxy",
   "license": "MIT",
   "keywords": [
     "Proxy",
