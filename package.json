@@ -1,7 +1,7 @@
 {
   "name": "severed-proxy",
   "description": "Create ECMAScript6 proxies severed from their target",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "author": {
     "name": "Laurent Christophe",
     "email": "lachrist@vub.ac.be"

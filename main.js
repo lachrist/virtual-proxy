@@ -2,6 +2,9 @@
 const Proxy = global.Proxy;
 const TypeError = global.TypeError;
 const Object_create = Object.create;
+const Object_assign = Object.assign;
+const WeakMap_prototype_get = WeakMap.prototype.get;
+const WeakMap_prototype_set = WeakMap.prototype.set;
 
 const Reflect_apply = Reflect.apply;
 const Reflect_construct = Reflect.construct;
@@ -18,7 +21,11 @@ const Reflect_set = Reflect.set;
 const Reflect_setPrototypeOf = Reflect.setPrototypeOf;
 
 const cache = new WeakMap();
+cache.get = WeakMap_prototype_get;
+cache.set = WeakMap_prototype_set;
 const inners = new WeakMap();
+inners.get = WeakMap_prototype_get;
+inners.set = WeakMap_prototype_set;
 
 module.exports = (target, inner, reflect) => {
 
@@ -187,13 +194,21 @@ module.exports = (target, inner, reflect) => {
   //////////////////////
   // Property-Derived //
   //////////////////////
-  // [RELEGATED] A property cannot be reported as non-existent, if it exists as a non-configurable own property of the target object.
+  // A property cannot be reported as non-existent, if it exists as a non-configurable own property of the target object.
   // A property cannot be reported as non-existent, if it exists as an own property of the target object and the target object is not extensible.
   handlers.has = (target, key) => {
-    const has = reflect.has(inners.get(target), key);
-    if (!has && Reflect_getOwnPropertyDescriptor(target, key) && !Reflect_isExtensible(target))
+    const target_descriptor = Reflect_getOwnPropertyDescriptor(target, key);
+    if (target_descriptor && !target_descriptor.configurable)
+      return true;
+    if (reflect.getOwnPropertyDescriptor(inners.get(target), key))
+      return true;
+    const prototype = Reflect_isExtensible(target) ?
+      reflect.getPrototypeOf(inners.get(target)) :
+      Reflect_getPrototypeOf(target);
+    const result = Boolean(prototype) && Reflect_has(prototype, key);
+    if (!result && target_descriptor && !Reflect_isExtensible(target))
       Reflect_deleteProperty(target, key);
-    return has;
+    return result;
   };
   // The value reported for a property must be the same as the value of the corresponding target object property if the target object property is a non-writable, non-configurable data property.
   // The value reported for a property must be undefined if the corresponding target object property is non-configurable accessor property that has undefined as its [[Get]] attribute.
@@ -209,7 +224,24 @@ module.exports = (target, inner, reflect) => {
         return void 0;
       }
     }
-    return reflect.get(inners.get(target), key, receiver);
+    const descriptor = reflect.getOwnPropertyDescriptor(inners.get(target), key);
+    if (descriptor) {
+      if (!descriptor.configurable && !descriptor.writable)
+        Reflect_defineProperty(target, key, descriptor);
+      if ("value" in descriptor)
+        return descriptor.value;
+      if (descriptor.get)
+        return Reflect_apply(descriptor.get, receiver, []);
+      return void 0;
+    }
+    const prototype = Reflect_isExtensible(target) ?
+      reflect.getPrototypeOf(inners.get(target)) :
+      Reflect_getPrototypeOf(target);
+    if (prototype)
+      return Reflect_get(prototype, key, receiver);
+    if (String(key) === "__proto__")
+      return Reflect_getPrototypeOf(receiver);
+    return void 0;
   };
   // Cannot change the value of a property to be different from the value of the corresponding target object property if the corresponding target object property is a non-writable, non-configurable data property.
   // Cannot set the value of a property if the corresponding target object property is a non-configurable accessor property that has undefined as its [[Set]] attribute.
@@ -226,7 +258,37 @@ module.exports = (target, inner, reflect) => {
         return "set" in target_descriptor;
       }
     }
-    return reflect.set(inners.get(target), key, value, receiver);
+    const descriptor = reflect.getOwnPropertyDescriptor(inners.get(target), key);
+    if (descriptor) {
+      if (descriptor.writable) {
+        const receiver_descriptor = Reflect_getOwnPropertyDescriptor(receiver, key)
+                                 || {writable:true, enumerable:true, configurable:true};
+        if (receiver_descriptor.writable) {
+          receiver_descriptor.value = value;
+          return Reflect_defineProperty(receiver, key, receiver_descriptor);
+        }
+        return false;
+      }
+      if (descriptor.set) {
+        Reflect_apply(descriptor.set, receiver, [value]);
+        return true;
+      }
+      return false;
+    }
+    const prototype = Reflect_isExtensible(target) ?
+      reflect.getPrototypeOf(inners.get(target)) :
+      Reflect_getPrototypeOf(target);
+    if (prototype)
+      return Reflect_set(prototype, key, value, receiver);
+    if (String(key) === "__proto__")
+      return Reflect_setPrototypeOf(receiver, value);
+    const receiver_descriptor = Reflect_getOwnPropertyDescriptor(receiver, key)
+                             || {writable:true, enumerable:true, configurable:true};
+    if (receiver_descriptor.writable) {
+      receiver_descriptor.value = value;
+      return Reflect_defineProperty(receiver, key, receiver_descriptor);
+    }
+    return false;
   };
 
   return new Proxy(target, handlers);
