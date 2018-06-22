@@ -131,6 +131,8 @@ exports.array = (virtual) => {
 exports.function = (virtual) => {
   console.log("Checking function-specific operations...");
   assert(typeof virtual === "function");
+  assert(Reflect.has(virtual, "prototype"));
+  Reflect.get(virtual, "prototype", virtual);
   const descriptor = Reflect.getOwnPropertyDescriptor(virtual, "prototype");
   assert(descriptor && "value" in descriptor && descriptor.enumerable === false && descriptor.configurable === false)
   Function.prototype.toString.call(virtual);

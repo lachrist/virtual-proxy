@@ -1,14 +1,14 @@
 {
-  "name": "tolerant-proxy",
-  "description": "Create more tolerant ECMAScript6 proxies",
+  "name": "lenient-proxy",
+  "description": "Create lenient ECMAScript6 proxies",
   "version": "0.0.0",
   "author": {
     "name": "Laurent Christophe",
     "email": "lachrist@vub.ac.be"
   },
   "main": "main.js",
-  "repository": "lachrist/tolerant-proxy",
-  "homepage": "http://github.com/lachrist/tolerant-proxy",
+  "repository": "lachrist/lenient-proxy",
+  "homepage": "http://github.com/lachrist/lenient-proxy",
   "license": "MIT",
   "keywords": [
     "Proxy",
