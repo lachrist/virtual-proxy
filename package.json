@@ -1,14 +1,14 @@
 {
-  "name": "lenient-proxy",
-  "description": "Create lenient ECMAScript6 proxies",
+  "name": "severed-proxy",
+  "description": "Create ECMAScript6 proxies severed from their target",
   "version": "0.0.0",
   "author": {
     "name": "Laurent Christophe",
     "email": "lachrist@vub.ac.be"
   },
   "main": "main.js",
-  "repository": "lachrist/lenient-proxy",
-  "homepage": "http://github.com/lachrist/lenient-proxy",
+  "repository": "lachrist/severed-proxy",
+  "homepage": "http://github.com/lachrist/severed-proxy",
   "license": "MIT",
   "keywords": [
     "Proxy",
