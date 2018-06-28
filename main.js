@@ -32,16 +32,17 @@ module.exports = (target, inner, reflect) => {
   if (reflect === void 0) {
     reflect = inner;
     inner = target;
-    target = (
-      Array.isArray(inner) ?
-      [] :
-      (
-        typeof inner === "function" ?
-        (
-          Reflect_getOwnPropertyDescriptor(inner, "prototype") ?
-          function () {} :
-          () => {}) :
-        {}));
+    if (Array.isArray(inner)) {
+      target = [];
+    } else if (typeof inner === "function") {
+      if (Reflect_getOwnPropertyDescriptor(inner, "prototype")) {
+        target = Reflect.getOwnPropertyDescriptor(inner, "arguments") ? function () {} : function () { "use strict"; };
+      } else {
+        target = () => {};
+      }
+    } else {
+      target = {};
+    }
   }
   inners.set(target, inner);
   let handlers = cache.has(reflect);
@@ -295,10 +296,14 @@ module.exports = (target, inner, reflect) => {
 
 };
 
-module.exports.array = (inner, reflect) => module.exports([], inner, reflect);
+module.exports.Array = (inner, reflect) => module.exports([], inner, reflect);
 
-module.exports.object = (inner, reflect) => module.exports({}, inner, reflect);
+module.exports.Object = (inner, reflect) => module.exports({}, inner, reflect);
 
-module.exports.function = (inner, reflect) => module.exports(function () {}, inner, reflect);
+module.exports.StrictFunction = (inner, reflect) => module.exports(function () { "use strict"; }, inner, reflect);
 
-module.exports.arrow = (inner, reflect) => module.exports(() => {}, inner, reflect);
+module.exports.Function = (inner, reflect) => module.exports(function () {}, inner, reflect);
+
+module.exports.Arrow = (inner, reflect) => module.exports(() => {}, inner, reflect);
+
+module.exports.StrictArrow = (inner, reflect) => module.exports(() => { "use strict"; }, inner, reflect);

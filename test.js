@@ -2,7 +2,7 @@
 const VirtualProxy = require("./main.js");
 const Check = require("./check.js");
 
-let remote;
+let virtual;
 const reflect = {};
 Reflect.ownKeys(Reflect).forEach((key) => {
   reflect[key] = function () {
@@ -10,21 +10,27 @@ Reflect.ownKeys(Reflect).forEach((key) => {
       throw new Error("This should refer to the colletion of handlers");
     if (arguments[0] !== "virtual")
       throw new Error("The target should be the string 'virtual'");
-    arguments[0] = remote;
+    arguments[0] = virtual;
     return Reflect[key](...arguments);
   };
 });
 
-remote = {};
-Check.object(VirtualProxy.object("virtual", reflect));
+virtual = {};
+Check.Object(VirtualProxy.Object("virtual", reflect));
 
-remote = [];
-Check.array(VirtualProxy.array("virtual", reflect));
+virtual = [];
+Check.Array(VirtualProxy.Array("virtual", reflect));
 
-remote = function () {}
-Check.function(VirtualProxy.function("virtual", reflect));
+virtual = function () {}
+Check.Function(VirtualProxy.Function("virtual", reflect));
 
-remote = () => {}
-Check.arrow(VirtualProxy.arrow("virtual", reflect));
+virtual = function () { "use strict"; }
+Check.StrictFunction(VirtualProxy.StrictFunction("virtual", reflect));
+
+virtual = () => {}
+Check.Arrow(VirtualProxy.Arrow("virtual", reflect));
+
+virtual = () => { "use strict"; }
+Check.StrictArrow(VirtualProxy.StrictArrow("virtual", reflect));
 
 console.log(Check.counter+" assertions passed!");

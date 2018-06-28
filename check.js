@@ -85,8 +85,8 @@ const common = (virtual) => {
   assert(!Reflect.ownKeys(virtual).includes(symbol_tuc));
 };
 
-exports.object = (virtual) => {
-  console.log("Checking object-specific operations...");
+exports.Object = (virtual) => {
+  console.log("Checking Object-specific operations...");
   assert(typeof virtual === "object");
   let error1;
   try {
@@ -105,8 +105,8 @@ exports.object = (virtual) => {
   common(virtual);
 };
 
-exports.array = (virtual) => {
-  console.log("Checking array-specific operations...");
+exports.Array = (virtual) => {
+  console.log("Checking Array-specific operations...");
   assert(Array.isArray(virtual));
   assert(typeof virtual === "object");
   const descriptor = Reflect.getOwnPropertyDescriptor(virtual, "length");
@@ -128,21 +128,34 @@ exports.array = (virtual) => {
   common(virtual);
 };
 
-exports.function = (virtual) => {
-  console.log("Checking function-specific operations...");
+exports.Function = (virtual) => {
+  console.log("Checking Function-specific operations...");
   assert(typeof virtual === "function");
-  assert(Reflect.has(virtual, "prototype"));
-  Reflect.get(virtual, "prototype", virtual);
-  const descriptor = Reflect.getOwnPropertyDescriptor(virtual, "prototype");
-  assert(descriptor && "value" in descriptor && descriptor.enumerable === false && descriptor.configurable === false)
+  const descriptor1 = Reflect.getOwnPropertyDescriptor(virtual, "prototype");
+  assert(descriptor1 && "value" in descriptor1 && !descriptor1.enumerable && !descriptor1.configurable);
+  const descriptor2 = Reflect.getOwnPropertyDescriptor(virtual, "caller");
+  assert(descriptor2 && descriptor2.value === null && !descriptor2.writable && !descriptor2.enumerable &&!descriptor2.configurable);
+  const descriptor3 = Reflect.getOwnPropertyDescriptor(virtual, "arguments");
+  assert(descriptor3 && descriptor3.value === null && !descriptor3.writable && !descriptor3.enumerable &&!descriptor3.configurable);
   Function.prototype.toString.call(virtual);
   Reflect.apply(virtual, undefined, []);
   Reflect.construct(virtual, []);
   common(virtual);
 };
 
-exports.arrow = (virtual) => {
-  console.log("Checking arrow-specific operations...");
+exports.StrictFunction = (virtual) => {
+  console.log("Checking StrictFunction-specific operations...");
+  assert(typeof virtual === "function");
+  const descriptor1 = Reflect.getOwnPropertyDescriptor(virtual, "prototype");
+  assert(descriptor1 && "value" in descriptor1 && !descriptor1.enumerable && !descriptor1.configurable);
+  Function.prototype.toString.call(virtual);
+  Reflect.apply(virtual, undefined, []);
+  Reflect.construct(virtual, []);
+  common(virtual);
+};
+
+exports.Arrow = (virtual) => {
+  console.log("Checking Arrow-specific operations...");
   assert(typeof virtual === "function");
   Function.prototype.toString.call(virtual);
   Reflect.apply(virtual, undefined, []);
@@ -155,5 +168,7 @@ exports.arrow = (virtual) => {
   assert(error2);
   common(virtual);
 };
+
+exports.StrictArrow = exports.Arrow;
 
 exports.counter = 0;

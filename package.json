@@ -1,14 +1,14 @@
 {
-  "name": "severed-proxy",
-  "description": "Create ECMAScript6 proxies severed from their target",
-  "version": "0.0.1",
+  "name": "virtual-proxy",
+  "description": "Create ECMAScript6 with a virtual target",
+  "version": "0.0.0",
   "author": {
     "name": "Laurent Christophe",
     "email": "lachrist@vub.ac.be"
   },
   "main": "main.js",
-  "repository": "lachrist/severed-proxy",
-  "homepage": "http://github.com/lachrist/severed-proxy",
+  "repository": "lachrist/virtual-proxy",
+  "homepage": "http://github.com/lachrist/virtual-proxy",
   "license": "MIT",
   "keywords": [
     "Proxy",
