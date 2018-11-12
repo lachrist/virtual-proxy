@@ -67,12 +67,3 @@ function ShadowProxy (shadow, target, handler) {
   shadowHandler.target = target;
   return new Proxy(shadow, shadowHandler);
 };
-
-const prototype = {};
-const shadow = {};
-const target = {};
-const handler = { getPrototypeOf: (target) => prototype };
-const proxy = new ShadowProxy(shadow, target, handler);
-Reflect.preventExtensions(proxy);
-if (Reflect.getPrototypeOf(shadow) !== prototype)
-  throw new Error("Assertion failure");
