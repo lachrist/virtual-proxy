@@ -78,21 +78,32 @@ module.exports = (target, inner, reflect) => {
   // In strict mode, a false return value from the defineProperty handler will throw a TypeError exception.
   handlers.defineProperty = (target, key, descriptor) => {
     const target_descriptor = Reflect_getOwnPropertyDescriptor(target, key);
-    if ((
-         !target_descriptor &&
-         !Reflect_isExtensible(target)) ||
-        (
-          target_descriptor &&
-          !target_descriptor.configurable &&
-          (
-            descriptor.configurable ||
-            (
-              descriptor.writable &&
-              !target_descriptor.writable) ||
-            descriptor.enumerable !== target_descriptor.enumerable ||
-            descriptor.get !== target_descriptor.get || 
-            descriptor.set !== target_descriptor.set)))
+    if (!target_descriptor && !Reflect_isExtensible(target))
       return false;
+    if (target_descriptor && !target_descriptor.configurable) {
+      Reflect_setPrototypeOf(target_descriptor, null);
+      if (descriptor.configurable)
+        return false;
+      if (target_descriptor.enumerable && !descriptor.enumerable)
+        return false;
+      if (!target_descriptor.enumerable && descriptor.enumerable)
+        return false;
+      if ("get" in descriptor || "set" in descriptor) {
+        if (Reflect_getOwnPropertyDescriptor(target_descriptor, "value"))
+          return false;
+        if (target_descriptor.get !== descriptor.get)
+          return false;
+        if (target_descriptor.set !== descriptor.set)
+          return false;
+      } else {
+        if (Reflect_getOwnPropertyDescriptor(target_descriptor, "get"))
+          return false;
+        if (!target_descriptor.writable && target_descriptor.writable)
+          return false;
+        if (!target_descriptor.writable && target_descriptor.value !== descriptor.value)
+          return false;
+      }
+    }
     if (!descriptor.configurable)
       Reflect_defineProperty(target, key, descriptor);
     return reflect.defineProperty(inners.get(target), key, descriptor);
