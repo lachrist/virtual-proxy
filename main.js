@@ -74,6 +74,7 @@ module.exports = (target, inner, reflect) => {
   //////////////
   // Property //
   //////////////
+  // https://tc39.github.io/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-defineownproperty-p-desc
   // A property cannot be added, if the target object is not extensible.
   // A property cannot be added as or modified to be non-configurable, if it does not exists as a non-configurable own property of the target object.
   // A property may not be non-configurable, if a corresponding configurable property of the target object exists.
@@ -84,26 +85,25 @@ module.exports = (target, inner, reflect) => {
     if (!target_descriptor && !Reflect_isExtensible(target))
       return false;
     if (target_descriptor && !target_descriptor.configurable) {
-      Reflect_setPrototypeOf(target_descriptor, null);
       if (descriptor.configurable)
         return false;
       if (target_descriptor.enumerable && !descriptor.enumerable)
         return false;
       if (!target_descriptor.enumerable && descriptor.enumerable)
         return false;
-      if ("get" in descriptor || "set" in descriptor) {
-        if (Reflect_getOwnPropertyDescriptor(target_descriptor, "value"))
-          return false;
-        if (target_descriptor.get !== descriptor.get)
-          return false;
-        if (target_descriptor.set !== descriptor.set)
-          return false;
-      } else {
+      if (Reflect_getOwnPropertyDescriptor(descriptor, "value") || Reflect_getOwnPropertyDescriptor("writable")) {
         if (Reflect_getOwnPropertyDescriptor(target_descriptor, "get"))
           return false;
         if (!target_descriptor.writable && target_descriptor.writable)
           return false;
         if (!target_descriptor.writable && target_descriptor.value !== descriptor.value)
+          return false;
+      } else {
+        if (Reflect_getOwnPropertyDescriptor(target_descriptor, "value"))
+          return false;
+        if (target_descriptor.get !== descriptor.get)
+          return false;
+        if (target_descriptor.set !== descriptor.set)
           return false;
       }
     }
@@ -283,7 +283,7 @@ module.exports = (target, inner, reflect) => {
       if (receiver === null || (typeof receiver !== "object" && typeof receiver !== "function"))
         return false;
       const receiver_descriptor = Reflect_getOwnPropertyDescriptor(receiver, key) || {value:void 0, writable:true, enumerable:true, configurable:true};
-      if (!Reflect_getOwnPropertyDescriptor(receiver, "value"))
+      if (!Reflect_getOwnPropertyDescriptor(receiver_descriptor, "value"))
         return false;
       if (!receiver_descriptor.writable)
         return false;
