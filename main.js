@@ -1,8 +1,9 @@
 
 const Proxy = global.Proxy;
+const Boolean = global.Boolean;
 const TypeError = global.TypeError;
 const Object_create = Object.create;
-const Object_assign = Object.assign;
+const Object_is = Object.is;
 const WeakMap_prototype_get = WeakMap.prototype.get;
 const WeakMap_prototype_set = WeakMap.prototype.set;
 
@@ -26,6 +27,8 @@ cache.set = WeakMap_prototype_set;
 const inners = new WeakMap();
 inners.get = WeakMap_prototype_get;
 inners.set = WeakMap_prototype_set;
+
+// https://tc39.github.io/ecma262/#sec-invariants-of-the-essential-internal-methods
 
 module.exports = (target, inner, reflect) => {
 
@@ -214,9 +217,7 @@ module.exports = (target, inner, reflect) => {
       return true;
     if (reflect.getOwnPropertyDescriptor(inners.get(target), key))
       return true;
-    const prototype = Reflect_isExtensible(target) ?
-      reflect.getPrototypeOf(inners.get(target)) :
-      Reflect_getPrototypeOf(target);
+    const prototype = Reflect_isExtensible(target) ? reflect.getPrototypeOf(inners.get(target)) : Reflect_getPrototypeOf(target);
     const result = Boolean(prototype) && Reflect_has(prototype, key);
     if (!result && target_descriptor && !Reflect_isExtensible(target))
       Reflect_deleteProperty(target, key);
@@ -226,82 +227,77 @@ module.exports = (target, inner, reflect) => {
   // The value reported for a property must be undefined if the corresponding target object property is non-configurable accessor property that has undefined as its [[Get]] attribute.
   handlers.get = (target, key, receiver) => {
     const target_descriptor = Reflect_getOwnPropertyDescriptor(target, key);
-    if (target_descriptor && !target_descriptor.configurable) {
-      if ("value" in target_descriptor) {
-        if (!target_descriptor.writable)
+    if (target_descriptor) {
+      if (Reflect_getOwnPropertyDescriptor(target_descriptor, "value")) {
+        if (!target_descriptor.configurable && !target_descriptor.writable) {
           return target_descriptor.value;
+        }
       } else {
-        if (target_descriptor.get)
-          return Reflect_apply(target_descriptor.get, receiver, []);
-        return void 0;
+        if (!target_descriptor.configurable) {
+          if (target_descriptor.get)
+            return Reflect_apply(target_descriptor.get, receiver, []);
+          return void 0;
+        }
       }
     }
     const descriptor = reflect.getOwnPropertyDescriptor(inners.get(target), key);
     if (descriptor) {
-      if (!descriptor.configurable && !descriptor.writable)
-        Reflect_defineProperty(target, key, descriptor);
-      if ("value" in descriptor)
+      if (Reflect_getOwnPropertyDescriptor(descriptor, "value")) {
         return descriptor.value;
-      if (descriptor.get)
-        return Reflect_apply(descriptor.get, receiver, []);
-      return void 0;
+      } else {
+        if (descriptor.get)
+          return Reflect_apply(descriptor.get, receiver, []);
+        return void 0;
+      }
     }
-    const prototype = Reflect_isExtensible(target) ?
-      reflect.getPrototypeOf(inners.get(target)) :
-      Reflect_getPrototypeOf(target);
+    const prototype = Reflect_isExtensible(target) ? reflect.getPrototypeOf(inners.get(target)) : Reflect_getPrototypeOf(target);
     if (prototype)
       return Reflect_get(prototype, key, receiver);
-    if (String(key) === "__proto__")
-      return Reflect_getPrototypeOf(receiver);
     return void 0;
   };
+  // https://tc39.github.io/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots-set-p-v-receiver
   // Cannot change the value of a property to be different from the value of the corresponding target object property if the corresponding target object property is a non-writable, non-configurable data property.
   // Cannot set the value of a property if the corresponding target object property is a non-configurable accessor property that has undefined as its [[Set]] attribute.
   // In strict mode, a false return value from the set handler will throw a TypeError exception.
   handlers.set = (target, key, value, receiver) => {
     const target_descriptor = Reflect_getOwnPropertyDescriptor(target, key);
     if (target_descriptor && !target_descriptor.configurable) {
-      if ("value" in target_descriptor) {
-        if (!target_descriptor.writable)
-          return value === target_descriptor.value;
-      } else {
-        if (target_descriptor.set)
-          Reflect_apply(target_descriptor.set, receiver, [value]);
-        return "set" in target_descriptor;
-      }
-    }
-    const descriptor = reflect.getOwnPropertyDescriptor(inners.get(target), key);
-    if (descriptor) {
-      if (descriptor.writable) {
-        const receiver_descriptor = Reflect_getOwnPropertyDescriptor(receiver, key)
-                                 || {writable:true, enumerable:true, configurable:true};
-        if (receiver_descriptor.writable) {
-          receiver_descriptor.value = value;
-          return Reflect_defineProperty(receiver, key, receiver_descriptor);
+      if (Reflect_getOwnPropertyDescriptor(target_descriptor, "value")) {
+        if (!target_descriptor.writable) {
+          return false;
         }
+      } else {
+        return Boolean(target_descriptor.set);
+      }
+    }
+    let descriptor = reflect.getOwnPropertyDescriptor(inners.get(target), key);
+    if (!descriptor) {
+      const prototype = Reflect_isExtensible(target) ? reflect.getPrototypeOf(inners.get(target)) : Reflect_getPrototypeOf(target);
+      if (prototype)
+        return Reflect_set(prototype, key, value, receiver);
+      descriptor = {value:void 0, writable:true, enumerable:true, configurable:true};
+    };
+    if (Reflect_getOwnPropertyDescriptor(descriptor, "value")) {
+      if (!descriptor.writable)
         return false;
-      }
-      if (descriptor.set) {
-        Reflect_apply(descriptor.set, receiver, [value]);
-        return true;
-      }
-      return false;
-    }
-    const prototype = Reflect_isExtensible(target) ?
-      reflect.getPrototypeOf(inners.get(target)) :
-      Reflect_getPrototypeOf(target);
-    if (prototype)
-      return Reflect_set(prototype, key, value, receiver);
-    if (String(key) === "__proto__")
-      return Reflect_setPrototypeOf(receiver, value);
-    const receiver_descriptor = Reflect_getOwnPropertyDescriptor(receiver, key)
-                             || {writable:true, enumerable:true, configurable:true};
-    if (receiver_descriptor.writable) {
+      if (receiver === null || (typeof receiver !== "object" && typeof receiver !== "function"))
+        return false;
+      const receiver_descriptor = Reflect_getOwnPropertyDescriptor(receiver, key) || {value:void 0, writable:true, enumerable:true, configurable:true};
+      if (!Reflect_getOwnPropertyDescriptor(receiver, "value"))
+        return false;
+      if (!receiver_descriptor.writable)
+        return false;
+      Reflect_setPrototypeOf(receiver_descriptor, null);
       receiver_descriptor.value = value;
-      return Reflect_defineProperty(receiver, key, receiver_descriptor);
+      Reflect_defineProperty(receiver, key, receiver_descriptor);
+      return true;
+    } else {
+      if (!descriptor.set)
+        return false;
+      Reflect_apply(descriptor.set, receiver, [value]);
+      return true;
     }
-    return false;
-  };
+  }
 
   return new Proxy(target, handlers);
 
