@@ -63,12 +63,10 @@ module.exports = (target, inner, reflect) => {
     return reflect.apply(inners.get(target), value, values);
   };
   // [RELEGATED] The result must be an Object.
-  handlers.construct = (target, values) => {
-    if (typeof target !== "function")
-      throw new TypeError("Target is not a function");
-    if (!Reflect_getOwnPropertyDescriptor(target, "prototype"))
-      throw new TypeError("Target is not a constructor");
-    return reflect.construct(inners.get(target), values);
+  handlers.construct = (target, values, newtarget) => {
+    Reflect.construct(Boolean, [], target);
+    Reflect.construct(Boolean, [], newtarget);
+    return reflect.construct(inners.get(target), values, newtarget);
   };
 
   //////////////
@@ -227,26 +225,26 @@ module.exports = (target, inner, reflect) => {
   // The value reported for a property must be undefined if the corresponding target object property is non-configurable accessor property that has undefined as its [[Get]] attribute.
   handlers.get = (target, key, receiver) => {
     const target_descriptor = Reflect_getOwnPropertyDescriptor(target, key);
-    if (target_descriptor) {
+    if (target_descriptor && !target_descriptor.configurable) {
       if (Reflect_getOwnPropertyDescriptor(target_descriptor, "value")) {
-        if (!target_descriptor.configurable && !target_descriptor.writable) {
+        if (!target_descriptor.writable) {
           return target_descriptor.value;
         }
       } else {
-        if (!target_descriptor.configurable) {
-          if (target_descriptor.get)
-            return Reflect_apply(target_descriptor.get, receiver, []);
-          return void 0;
+        if (target_descriptor.get) {
+          return Reflect_apply(target_descriptor.get, receiver, []);
         }
+        return void 0;
       }
     }
-    const descriptor = reflect.getOwnPropertyDescriptor(inners.get(target), key);
-    if (descriptor) {
-      if (Reflect_getOwnPropertyDescriptor(descriptor, "value")) {
-        return descriptor.value;
+    const inner_descriptor = reflect.getOwnPropertyDescriptor(inners.get(target), key);
+    if (inner_descriptor) {
+      if (Reflect_getOwnPropertyDescriptor(inner_descriptor, "value")) {
+        return inner_descriptor.value;
       } else {
-        if (descriptor.get)
-          return Reflect_apply(descriptor.get, receiver, []);
+        if (inner_descriptor.get) {
+          return Reflect_apply(inner_descriptor.get, receiver, []);
+        }
         return void 0;
       }
     }
@@ -267,18 +265,22 @@ module.exports = (target, inner, reflect) => {
           return false;
         }
       } else {
-        return Boolean(target_descriptor.set);
+        if (descriptor.set) {
+          Reflect_apply(descriptor.set, receiver, [value]);
+          return true;
+        }
+        return false;
       }
     }
-    let descriptor = reflect.getOwnPropertyDescriptor(inners.get(target), key);
-    if (!descriptor) {
+    let inner_descriptor = reflect.getOwnPropertyDescriptor(inners.get(target), key);
+    if (!inner_descriptor) {
       const prototype = Reflect_isExtensible(target) ? reflect.getPrototypeOf(inners.get(target)) : Reflect_getPrototypeOf(target);
       if (prototype)
         return Reflect_set(prototype, key, value, receiver);
-      descriptor = {value:void 0, writable:true, enumerable:true, configurable:true};
+      inner_descriptor = {value:void 0, writable:true, enumerable:true, configurable:true};
     };
-    if (Reflect_getOwnPropertyDescriptor(descriptor, "value")) {
-      if (!descriptor.writable)
+    if (Reflect_getOwnPropertyDescriptor(inner_descriptor, "value")) {
+      if (!inner_descriptor.writable)
         return false;
       if (receiver === null || (typeof receiver !== "object" && typeof receiver !== "function"))
         return false;
@@ -292,10 +294,11 @@ module.exports = (target, inner, reflect) => {
       Reflect_defineProperty(receiver, key, receiver_descriptor);
       return true;
     } else {
-      if (!descriptor.set)
-        return false;
-      Reflect_apply(descriptor.set, receiver, [value]);
-      return true;
+      if (inner_descriptor.set) {
+        Reflect_apply(inner_descriptor.set, receiver, [value]);
+        return true;
+      }
+      return false;
     }
   }
 
