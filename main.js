@@ -89,7 +89,7 @@ module.exports = (target, inner, reflect) => {
         return false;
       if (!target_descriptor.enumerable && descriptor.enumerable)
         return false;
-      if (Reflect_getOwnPropertyDescriptor(descriptor, "value") || Reflect_getOwnPropertyDescriptor("writable")) {
+      if (Reflect_getOwnPropertyDescriptor(descriptor, "value") || Reflect_getOwnPropertyDescriptor(descriptor, "writable")) {
         if (Reflect_getOwnPropertyDescriptor(target_descriptor, "get"))
           return false;
         if (!target_descriptor.writable && target_descriptor.writable)
