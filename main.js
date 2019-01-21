@@ -30,6 +30,15 @@ inners.set = WeakMap_prototype_set;
 
 // https://tc39.github.io/ecma262/#sec-invariants-of-the-essential-internal-methods
 
+const hold = (object, key) => {
+  while (object) {
+    if (Reflect_getOwnPropertyDescriptor(object, key))
+      return true;
+    object = Reflect_getPrototypeOf(object);
+  }
+  return false;
+};
+
 module.exports = (target, inner, reflect) => {
 
   if (reflect === void 0) {
@@ -94,14 +103,14 @@ module.exports = (target, inner, reflect) => {
           return false;
         if (!target_descriptor.writable && target_descriptor.writable)
           return false;
-        if (!target_descriptor.writable && target_descriptor.value !== descriptor.value)
+        if (!target_descriptor.writable && hold(descriptor, "value") && target_descriptor.value !== descriptor.value)
           return false;
       } else {
         if (Reflect_getOwnPropertyDescriptor(target_descriptor, "value"))
           return false;
-        if (target_descriptor.get !== descriptor.get)
+        if (hold(descriptor, "get") && target_descriptor.get !== descriptor.get)
           return false;
-        if (target_descriptor.set !== descriptor.set)
+        if (hold(descriptor, "set") && target_descriptor.set !== descriptor.set)
           return false;
       }
     }
