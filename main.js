@@ -278,9 +278,10 @@ module.exports = (target, __target__, __handler__) => {
     if (Array.isArray(__target__)) {
       target = [];
     } else if (typeof __target__ === "function") {
-      if (Reflect_getOwnPropertyDescriptor(__target__, "prototype")) {
-        target = Reflect.getOwnPropertyDescriptor(__target__, "arguments") ? function () {} : function () { "use strict"; };
-      } else {
+      try {
+        Reflect_construct(Boolean, [], __target__);
+        target = function () { "use strict" };
+      } catch (error) {
         target = () => {};
       }
     } else {
