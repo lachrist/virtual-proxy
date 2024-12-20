@@ -14,7 +14,7 @@ export type AccessorDescriptor = {
 
 export type Descriptor = DataDescriptor | AccessorDescriptor;
 
-export type Handler<T, H> = {
+type Handler<H, T> = {
   apply(this: H, target: T, that: any, args: any[]): any;
   construct(this: H, target: T, args: any[], new_target: Function): object;
   defineProperty(
@@ -45,12 +45,14 @@ export type Handler<T, H> = {
   ): boolean;
 };
 
-export type VirtualHandlerPrototype<V, T> = Handler<V, VirtualHandler<V, T>>;
+export type VirtualHandler<V, T> = Handler<
+  {
+    target: T;
+    handler: ActualHandler<T>;
+  },
+  V
+>;
 
-export type VirtualHandler<V, T> = {
-  __proto__: VirtualHandlerPrototype<V, T>;
-  target: T;
-  handler: Handler<T, {}>;
+export type ActualHandler<T> = Handler<{ __brand: "ActualHandler" }, T> & {
+  __brand: "ActualHandler";
 };
-
-export type Proxy = <V, T>(target: V, handler: VirtualHandler<V, T>) => object;
