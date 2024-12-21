@@ -1,14 +1,20 @@
 {
   "name": "virtual-proxy",
   "description": "Create ECMAScript6 with a virtual target",
-  "version": "0.0.11",
+  "version": "0.1.0",
   "author": {
     "name": "Laurent Christophe",
     "email": "lachrist@vub.ac.be"
   },
+  "types": "type.d.ts",
+  "type": "module",
   "main": "main.js",
   "repository": "lachrist/virtual-proxy",
   "homepage": "http://github.com/lachrist/virtual-proxy",
+  "scripts": {
+    "test": "node test/test.mjs",
+    "test-cov": "npx c8 -- node test/test.mjs"
+  },
   "license": "MIT",
   "keywords": [
     "Proxy",

@@ -1,18 +1,3 @@
-# VirtualProxy
-
-The Proxy API enables powerful reflection on JavaScript objects. However, it is
-constrained by strict invariants, such as requiring proxies to report consistent
-values for immutable properties (i.e., non-configurable and non-writable). While
-these invariants are essential for ensuring the consistent behavior of
-JavaScript objects, the current implementation imposes unnecessary limitations
-by using the target object for bookkeeping.
-
-This module introduces a mechanism to decouple the target object from the
-bookkeeping process, enabling more flexible and versatile use of proxies.
-
-## Demo
-
-```js
 import { VirtualProxy, setupVirtualHandler } from "../lib/index.mjs";
 const target = Object.freeze({
   name: "John",
@@ -42,8 +27,3 @@ const handler = {
   const proxy = new Proxy(integrity, setupVirtualHandler(target, handler));
   console.log(proxy.password); // ****
 }
-```
-
-## API
-
-[TypeScript Declaration](./type.d.ts)

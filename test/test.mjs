@@ -1,5 +1,11 @@
-import { config } from "node:process";
-import { virtualizeHandler } from "../lib/index.mjs";
+import {
+  RevocableVirtualProxy,
+  VirtualArray,
+  VirtualFunction,
+  setupVirtualHandler,
+  VirtualObject,
+  VirtualProxy,
+} from "../lib/index.mjs";
 import {
   ok as assert,
   strictEqual as assertEqual,
@@ -156,7 +162,7 @@ const generateDescriptor = () => {
  * ) => T}
  */
 const virtualize = (target) =>
-  /** @type {any} */ (new Proxy({}, virtualizeHandler(target, {})));
+  /** @type {any} */ (new Proxy({}, setupVirtualHandler(target, {})));
 
 {
   const descriptors = generateDescriptor();
@@ -167,7 +173,7 @@ const virtualize = (target) =>
       testDescriptor(
         new Proxy(
           { __proto__: null },
-          virtualizeHandler({ __proto__: null }, {}),
+          setupVirtualHandler({ __proto__: null }, {}),
         ),
         key,
         descriptor1,
@@ -176,7 +182,7 @@ const virtualize = (target) =>
       testDescriptor(
         new Proxy(
           Object.preventExtensions({ __proto__: null, [key]: null }),
-          virtualizeHandler({ __proto__: null }, {}),
+          setupVirtualHandler({ __proto__: null }, {}),
         ),
         key,
         descriptor1,
@@ -200,7 +206,7 @@ const virtualize = (target) =>
         }
       }
     ),
-    virtualizeHandler(
+    setupVirtualHandler(
       /** @type {new (... input: number[]) => { inner: number }} */ (
         class {
           /**
@@ -226,7 +232,7 @@ const virtualize = (target) =>
         throw new Error("unreachable");
       }
     ),
-    virtualizeHandler(
+    setupVirtualHandler(
       /** @type {(this: string, ...input: number[]) => number} */ (
         function (...input) {
           assertEqual(new.target, undefined);
@@ -365,7 +371,7 @@ for (const [name, test] of Object.entries(tests)) {
   test(
     new Proxy(
       { __proto__: null },
-      virtualizeHandler(
+      setupVirtualHandler(
         { __proto__: null },
         /** @type {any} */ ({ __proto__: null }),
       ),
@@ -389,7 +395,7 @@ for (const [name, test] of Object.entries(tests)) {
   assertEqual(Reflect.preventExtensions(virtual), true);
   const proxy = new Proxy(
     virtual,
-    virtualizeHandler(
+    setupVirtualHandler(
       { __proto__: null },
       /** @type {any} */ ({ __proto__: null }),
     ),
@@ -426,7 +432,7 @@ for (const [name, test] of Object.entries(tests)) {
   );
   const proxy = new Proxy(
     virtual,
-    virtualizeHandler(
+    setupVirtualHandler(
       { __proto__: null },
       /** @type {any} */ ({ __proto__: null }),
     ),
@@ -469,7 +475,7 @@ for (const [name, test] of Object.entries(tests)) {
   );
   const proxy = new Proxy(
     virtual,
-    virtualizeHandler(target, /** @type {any} */ ({ __proto__: null })),
+    setupVirtualHandler(target, /** @type {any} */ ({ __proto__: null })),
   );
   assertThrow(() => {
     Reflect.getOwnPropertyDescriptor(proxy, key);
@@ -502,7 +508,7 @@ for (const [name, test] of Object.entries(tests)) {
   );
   const proxy = new Proxy(
     virtual,
-    virtualizeHandler(target, /** @type {any} */ ({ __proto__: null })),
+    setupVirtualHandler(target, /** @type {any} */ ({ __proto__: null })),
   );
   assertThrow(() => {
     Reflect.preventExtensions(proxy);
@@ -516,7 +522,7 @@ for (const [name, test] of Object.entries(tests)) {
   const target = { __proto__: {} };
   const proxy = new Proxy(
     virtual,
-    virtualizeHandler(target, /** @type {any} */ ({ __proto__: null })),
+    setupVirtualHandler(target, /** @type {any} */ ({ __proto__: null })),
   );
   assertThrow(() => {
     Reflect.preventExtensions(proxy);
@@ -529,7 +535,7 @@ for (const [name, test] of Object.entries(tests)) {
   assertEqual(Reflect.preventExtensions(target), true);
   const proxy = new Proxy(
     virtual,
-    virtualizeHandler(target, /** @type {any} */ ({ __proto__: null })),
+    setupVirtualHandler(target, /** @type {any} */ ({ __proto__: null })),
   );
   assertEqual(Reflect.isExtensible(proxy), false);
 }
@@ -542,7 +548,7 @@ for (const [name, test] of Object.entries(tests)) {
   const target = { __proto__: null };
   const proxy = new Proxy(
     virtual,
-    virtualizeHandler(target, /** @type {any} */ ({ __proto__: null })),
+    setupVirtualHandler(target, /** @type {any} */ ({ __proto__: null })),
   );
   assertThrow(() => {
     Reflect.defineProperty(proxy, key, {
@@ -552,4 +558,30 @@ for (const [name, test] of Object.entries(tests)) {
       configurable: false,
     });
   }, TypeError);
+}
+
+/////////////////
+// Convenience //
+/////////////////
+
+assertEqual(Array.isArray(VirtualProxy([123], [], {})), true);
+
+assertEqual(Array.isArray(RevocableVirtualProxy([], [], {}).proxy), true);
+
+{
+  const proxy = VirtualObject({}, {});
+  assertEqual(Array.isArray(proxy), false);
+  assertEqual(typeof proxy, "object");
+}
+
+{
+  const proxy = VirtualArray({}, {});
+  assertEqual(Array.isArray(proxy), true);
+  assertEqual(typeof proxy, "object");
+}
+
+{
+  const proxy = VirtualFunction({}, {});
+  assertEqual(Array.isArray(proxy), false);
+  assertEqual(typeof proxy, "function");
 }
