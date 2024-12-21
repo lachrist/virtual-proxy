@@ -1,14 +1,15 @@
 {
   "name": "virtual-proxy",
   "description": "Create ECMAScript6 with a virtual target",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": {
     "name": "Laurent Christophe",
     "email": "lachrist@vub.ac.be"
   },
   "files": [
-    "lib/index.mjs",
-    "type.d.ts"
+    "package.json",
+    "type.d.ts",
+    "lib/index.mjs"
   ],
   "types": "type.d.ts",
   "type": "module",
