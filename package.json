@@ -6,6 +6,10 @@
     "name": "Laurent Christophe",
     "email": "lachrist@vub.ac.be"
   },
+  "files": [
+    "lib/index.mjs",
+    "type.d.ts"
+  ],
   "types": "type.d.ts",
   "type": "module",
   "main": "main.js",
