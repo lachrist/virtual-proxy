@@ -13,7 +13,7 @@
  * @returns An (actual) handler object that should be passed to the proxy
  * constructor.
  */
-export type setupVirtualHandler = <V extends object, T extends object>(
+export const setupVirtualHandler: <V extends object, T extends object>(
   target: V,
   handler: ProxyHandler<V>,
 ) => ProxyHandler<T>;
@@ -29,7 +29,7 @@ export type setupVirtualHandler = <V extends object, T extends object>(
  * a regular proxy handler object.
  * @returns A virtual proxy object.
  */
-export type VirtualProxy = new <V extends object, T extends object>(
+export const VirtualProxy: new <V extends object, T extends object>(
   integrity: T,
   target: V,
   handler: ProxyHandler<V>,
@@ -43,7 +43,7 @@ export type VirtualProxy = new <V extends object, T extends object>(
  * @param handler The virtual handler object.
  * @returns Both a virtual proxy object and a function to revoke the proxy.
  */
-export type RevocableVirtualProxy = new <V extends object, T extends object>(
+export const RevocableVirtualProxy: new <V extends object, T extends object>(
   integrity: T,
   target: V,
   handler: ProxyHandler<V>,
@@ -55,7 +55,7 @@ export type RevocableVirtualProxy = new <V extends object, T extends object>(
  * @param handler The virtual handler object.
  * @returns A plain virtual proxy object.
  */
-export type VirtualObject = new <V extends object, T extends object>(
+export const VirtualObject: new <V extends object, T extends object>(
   target: V,
   handler: ProxyHandler<V>,
 ) => T;
@@ -66,7 +66,7 @@ export type VirtualObject = new <V extends object, T extends object>(
  * @param handler The virtual handler object.
  * @returns A virtual proxy array.
  */
-export type VirtualArray = new <V extends object, T extends any[]>(
+export const VirtualArray: new <V extends object, T extends any[]>(
   target: V,
   handler: ProxyHandler<V>,
 ) => T;
@@ -77,7 +77,7 @@ export type VirtualArray = new <V extends object, T extends any[]>(
  * @param handler The virtual handler object.
  * @returns A virtual proxy function.
  */
-export type VirtualFunction = new <V extends object, T extends Function>(
+export const VirtualFunction: new <V extends object, T extends Function>(
   target: V,
   handler: ProxyHandler<V>,
 ) => T;
