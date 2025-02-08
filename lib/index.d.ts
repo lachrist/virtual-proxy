@@ -49,7 +49,6 @@ export type ActualHandler<V, T> = Handler<
   {
     target: V;
     handler: VirtualHandler<V>;
-    TypeError: new (message: string) => unknown;
   },
   T
 >;
