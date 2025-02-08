@@ -260,14 +260,41 @@ const tests = {
     assertEqual(
       Reflect.defineProperty(object, "foo", {
         value: 456,
+        writable: false,
       }),
       true,
     );
     assertEqual(
       Reflect.defineProperty(object, "foo", {
         value: 789,
+        writable: true,
       }),
       true,
+    );
+  },
+  "property >> existing non-configurable": (object) => {
+    assertEqual(
+      Reflect.defineProperty(object, "foo", {
+        value: 123,
+        writable: true,
+        enumerable: true,
+        configurable: false,
+      }),
+      true,
+    );
+    assertEqual(
+      Reflect.defineProperty(object, "foo", {
+        value: 456,
+        writable: false,
+      }),
+      true,
+    );
+    assertEqual(
+      Reflect.defineProperty(object, "foo", {
+        value: 789,
+        writable: true,
+      }),
+      false,
     );
   },
   "prevent-extension": (object) => {
