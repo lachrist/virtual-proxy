@@ -1,3 +1,6 @@
+/* eslint-disable no-console */
+/* eslint-disable local/no-global */
+
 import {
   RevocableVirtualProxy,
   VirtualArray,
@@ -383,7 +386,6 @@ const tests = {
     const value1 = 123;
     const value2 = 456;
     const receiver = {};
-    let called = 0;
     assertEqual(
       Reflect.defineProperty(object, key, {
         get() {
@@ -391,7 +393,6 @@ const tests = {
           return value1;
         },
         set(value) {
-          called++;
           assertEqual(this, receiver);
           assertEqual(value, value2);
           return value;

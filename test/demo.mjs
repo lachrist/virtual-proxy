@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { VirtualProxy, setupVirtualHandler } from "../lib/index.mjs";
 const target = Object.freeze({
   name: "John",

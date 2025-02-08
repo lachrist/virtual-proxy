@@ -1,3 +1,11 @@
+export type Options = {
+  /**
+   * The constructor to use to create a TypeError. Useful when dealing with
+   * multiple realms to ensure errors are created in the correct realm.
+   */
+  TypeError?: new (message: string) => unknown;
+};
+
 /**
  * Main export of the library, it creates an handler object that should be
  * passed to the Proxy constructor.
@@ -10,12 +18,14 @@
  * handler functions.
  * @param handler The virtual handler object which has the same interface as
  * a regular proxy handler object.
+ * @param options Optional object to configure the actual handler object.
  * @returns An (actual) handler object that should be passed to the proxy
  * constructor.
  */
 export const setupVirtualHandler: <V extends object, T extends object>(
   target: V,
   handler: ProxyHandler<V>,
+  options?: Options,
 ) => ProxyHandler<T>;
 
 /**
@@ -27,12 +37,14 @@ export const setupVirtualHandler: <V extends object, T extends object>(
  * handler object.
  * @param handler The virtual handler object which has the same interface as
  * a regular proxy handler object.
+ * @param options Optional object to configure the actual handler object.
  * @returns A virtual proxy object.
  */
 export const VirtualProxy: new <V extends object, T extends object>(
   integrity: T,
   target: V,
   handler: ProxyHandler<V>,
+  options?: Options,
 ) => T;
 
 /**
@@ -41,43 +53,51 @@ export const VirtualProxy: new <V extends object, T extends object>(
  * @param integrity The actual target object.
  * @param target The virtual target object.
  * @param handler The virtual handler object.
+ * @param options Optional object to configure the actual handler object.
  * @returns Both a virtual proxy object and a function to revoke the proxy.
  */
 export const RevocableVirtualProxy: new <V extends object, T extends object>(
   integrity: T,
   target: V,
   handler: ProxyHandler<V>,
+  options?: Options,
 ) => { proxy: T; revoke: () => void };
 
 /**
  * Cosmetic function to create a plain virtual proxy object.
  * @param target The virtual target object.
  * @param handler The virtual handler object.
+ * @param options Optional object to configure the actual handler object.
  * @returns A plain virtual proxy object.
  */
 export const VirtualObject: new <V extends object, T extends object>(
   target: V,
   handler: ProxyHandler<V>,
+  options?: Options,
 ) => T;
 
 /**
  * Cosmetic function to create a virtual proxy array.
  * @param target The virtual target object.
  * @param handler The virtual handler object.
+ * @param options Optional object to configure the actual handler object.
  * @returns A virtual proxy array.
  */
 export const VirtualArray: new <V extends object, T extends any[]>(
   target: V,
   handler: ProxyHandler<V>,
+  options?: Options,
 ) => T;
 
 /**
  * Cosmetic function to create a virtual proxy function.
  * @param target The virtual target object.
  * @param handler The virtual handler object.
+ * @param options Optional object to configure the actual handler object.
  * @returns A virtual proxy function.
  */
 export const VirtualFunction: new <V extends object, T extends Function>(
   target: V,
   handler: ProxyHandler<V>,
+  options?: Options,
 ) => T;

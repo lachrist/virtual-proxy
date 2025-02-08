@@ -1,7 +1,7 @@
 {
   "name": "virtual-proxy",
   "description": "More permisive proxy objects by separating invariant bookkeeping from the target object.",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "author": {
     "name": "Laurent Christophe",
     "email": "laurent.christophe.terken@gmail.com"
@@ -16,6 +16,7 @@
   "repository": "lachrist/virtual-proxy",
   "homepage": "http://github.com/lachrist/virtual-proxy",
   "scripts": {
+    "lint": "npx tsc && npx eslint && npx prettier --check .",
     "test": "node test/test.mjs",
     "test-cov": "npx c8 -- node test/test.mjs"
   },
@@ -28,7 +29,9 @@
   "devDependencies": {
     "@types/node": "^22.10.2",
     "c8": "^10.1.3",
+    "eslint": "^9.20.0",
     "prettier": "^3.4.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.23.0"
   }
 }
