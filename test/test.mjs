@@ -156,14 +156,6 @@ const generateDescriptor = () => {
   return descriptors;
 };
 
-/**
- * @type {<T extends object>(
- *   target: T,
- * ) => T}
- */
-const virtualize = (target) =>
-  /** @type {any} */ (new Proxy({}, setupVirtualHandler(target, {})));
-
 {
   const descriptors = generateDescriptor();
   const key = "foo";
@@ -255,6 +247,29 @@ const virtualize = (target) =>
  * @type {{[key in string]: ((object: object) => void) }}
  */
 const tests = {
+  "property >> existing configurable": (object) => {
+    assertEqual(
+      Reflect.defineProperty(object, "foo", {
+        value: 123,
+        writable: true,
+        enumerable: true,
+        configurable: true,
+      }),
+      true,
+    );
+    assertEqual(
+      Reflect.defineProperty(object, "foo", {
+        value: 456,
+      }),
+      true,
+    );
+    assertEqual(
+      Reflect.defineProperty(object, "foo", {
+        value: 789,
+      }),
+      true,
+    );
+  },
   "prevent-extension": (object) => {
     const key = "foo";
     assertEqual(Reflect.setPrototypeOf(object, null), true);
