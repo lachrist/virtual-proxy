@@ -603,6 +603,17 @@ for (const [name, test] of Object.entries(tests)) {
   }, TypeError);
 }
 
+// Handle Object.freeze
+{
+  const proxy = VirtualProxy(
+    { __proto__: null },
+    { __proto__: null, foo: 123 },
+    {},
+  );
+  assertEqual(Object.freeze(proxy), proxy);
+  assertEqual(Reflect.get(proxy, "foo"), 123);
+}
+
 /////////////////
 // Convenience //
 /////////////////
