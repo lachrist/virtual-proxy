@@ -13,8 +13,11 @@
   "types": "type.d.ts",
   "type": "module",
   "main": "lib/index.mjs",
-  "repository": "lachrist/virtual-proxy",
-  "homepage": "http://github.com/lachrist/virtual-proxy",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lachrist/virtual-proxy.git"
+  },
+  "homepage": "https://github.com/lachrist/virtual-proxy",
   "scripts": {
     "lint": "npx tsc && npx eslint && npx prettier --check .",
     "test": "node test/test.mjs",
